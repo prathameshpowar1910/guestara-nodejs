@@ -1,5 +1,5 @@
 import express from "express";
-import cookieParser from "cookie-parser"; //? cookie-parser is used to parse cookies from the request headers
+import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();

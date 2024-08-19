@@ -1,6 +1,7 @@
 import { Category } from "../models/Category.model.js";
 import { Item } from "../models/Item.model.js";
 import { SubCategory } from "../models/SubCategory.model.js";
+import mongoose from "mongoose";
 
 const createItem = async (req, res) => {
   try {
@@ -83,9 +84,19 @@ const getAllItemsBySubCategory = async (req, res) => {
 
 const getItemByNameOrId = async (req, res) => {
   try {
-    const item = await Item.findOne({
-      $or: [{ _id: req.params.identifier }, { name: req.params.identifier }],
-    }).populate('category').populate('subCategory');
+    const ObjectId = mongoose.Types.ObjectId;
+    let query;
+    
+    if (ObjectId.isValid(req.params.identifier)) {
+      query = { _id: req.params.identifier };
+    } else {
+      query = { name: new RegExp('^' + req.params.identifier + '$', 'i') };
+    }
+
+    const item = await Item.findOne(query)
+      .populate('category')
+      .populate('subCategory');
+
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }

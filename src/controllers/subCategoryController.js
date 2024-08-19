@@ -1,5 +1,6 @@
 import { SubCategory } from '../models/SubCategory.model.js';
 import { Category } from '../models/Category.model.js';
+import mongoose from 'mongoose';
 
 const createSubCategory = async (req, res) => {
   try {
@@ -41,13 +42,21 @@ const getAllSubCategoriesByCategory = async (req, res) => {
 
 const getSubCategoryByNameOrId = async (req, res) => {
   try {
-    const subCategory = await SubCategory.findOne({
-      $or: [{ _id: req.params.identifier }, { name: req.params.identifier }],
-    }).populate('category');
+    const ObjectId = mongoose.Types.ObjectId;
+    let query;
+    if (ObjectId.isValid(req.params.identifier)) {
+      query = { _id: req.params.identifier };
+    } else {
+      query = { name: new RegExp('^' + req.params.identifier + '$', 'i') };
+    }
+
+    const subCategory = await SubCategory.findOne(query).populate('category');
+
     if (!subCategory) {
       return res.status(404).json({ error: 'Sub-category not found' });
     }
-    res.json(subCategory);
+    
+    return res.json(subCategory);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

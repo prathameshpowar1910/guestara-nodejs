@@ -1,5 +1,7 @@
 import { Category } from "../models/Category.model.js";
 import logger from "../utils/logger.js";
+import mongoose from "mongoose";
+
 const createCategory = async (req, res) => {
   try {
     const data = req.body;
@@ -36,9 +38,16 @@ const getAllCategories = async (req, res) => {
 
 const getCategoryByNameOrId = async (req, res) => {
   try {
-    const category = await Category.findOne({
-      $or: [{ _id: req.params.identifier }, { name: req.params.identifier }],
-    });
+    const ObjectId = mongoose.Types.ObjectId;
+    let query;
+    if (ObjectId.isValid(req.params.identifier)) {
+      query = { _id: req.params.identifier };
+    } else {
+      query = { name: new RegExp('^' + req.params.identifier + '$', 'i') };
+    }
+
+    const category = await Category.findOne(query);
+
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
